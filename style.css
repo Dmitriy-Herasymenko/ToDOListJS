@@ -85,7 +85,9 @@ body {
 }
 
 .add_icon {
-    margin-left: 2px;
+    display: flex;
+    margin: 0 auto;
+    align-self: center;
 }
 
 .add_button:active {
@@ -185,6 +187,11 @@ body {
     font-size: 18px;
     outline: none;
     cursor: pointer;
+}
+
+.hydrated{
+    display: flex;
+    align-self: center;
 }
 
 .remove_button_list {

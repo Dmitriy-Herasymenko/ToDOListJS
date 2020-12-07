@@ -2,7 +2,6 @@ let toDoList = [];
 let currentListId;
 let counterId = JSON.parse(localStorage.getItem('CounterId'));
 
-//console.log('todoList', toDoList)
 
 const saveLocalStorage = () => {
     localStorage.setItem('ToDOList', JSON.stringify(toDoList));
@@ -12,11 +11,12 @@ const saveLocalStorage = () => {
 const delegation = e => {
     const {target} = e;
 
-    const isCheckbox = target.className.includes("checkbox");
-    const isRemoveTask = target.className.includes("remove_button");
-    const isRemoveList = target.className.includes("remove_button_list");
-    const isEditBtn = target.className.includes("edit_button");
-    const isEditBtnList = target.className.includes("edit_button_list");
+    const isCheckbox = target.closest('.checkbox');
+    const isRemoveTask = target.closest('.remove_button');
+    const isRemoveList = target.closest('.remove_button_list');
+    const isEditBtn = target.closest('.edit_button');
+    const isEditBtnList = target.closest('.headerList');
+    const isAddBtnTasks = target.closest('.add_button');
 
     if (isCheckbox) {
         checkBoxChange(target)
@@ -33,14 +33,16 @@ const delegation = e => {
     if (isEditBtn) {
         editTask(target)
     }
-
+    if (isAddBtnTasks) {
+        openModal(target)
+    }
 }
 
 
 //Drag and Drop
 const dragAndDrop = () => {
-    const cards = document.querySelectorAll(".task-js");
-    const cells = document.querySelectorAll(".js-cell");
+    const cards = document.querySelectorAll('.task-js');
+    const cells = document.querySelectorAll('.js-cell');
     let currentCard;
     let currentList;
 
@@ -99,28 +101,28 @@ const dragAndDrop = () => {
 dragAndDrop();
 
 const removeTask = elem => {
-    const listId = +elem.closest(".todo").id;
-    const taskId = +elem.closest(".task").id;
+    const listId = +elem.closest('.todo').id;
+    const taskId = +elem.closest('.task').id;
     const index = toDoList[listId].tasks.findIndex(task => task.id === taskId);
     toDoList[listId].tasks.splice(index, 1);
 
-    outList();
+    outLists();
     saveLocalStorage();
 }
 
 const checkBoxChange = elem => {
-    const listId = +elem.closest(".todo").id;
-    const taskId = +elem.closest(".task").id;
+    const listId = +elem.closest('.todo').id;
+    const taskId = +elem.closest('.task').id;
     const currentTask = toDoList[listId].tasks.find((task) => task.id === taskId);
     elem.checked ? (currentTask.isActive = true) : (currentTask.isActive = false);
-    outList();
+    outLists();
     saveLocalStorage();
 }
 
 const editTask = elem => {
-    const parentLi = elem.closest(".task");
-    const listId = +elem.closest(".todo").id;
-    const taskId = +elem.closest(".task").id;
+    const parentLi = elem.closest('.task');
+    const listId = +elem.closest('.todo').id;
+    const taskId = +elem.closest('.task').id;
     const currentTask = toDoList[listId].tasks.find(task => task.id === taskId);
 
     parentLi.innerHTML = `
@@ -136,14 +138,14 @@ const editTask = elem => {
 
     let newTitleValue = e => title = e;
 
-    newTitle.addEventListener("input", e => {
+    newTitle.addEventListener('input', e => {
         newTitleValue(e.target.value);
         currentTask.title = title;
     })
 
     let newMessageValue = e => message = e;
 
-    newMessage.addEventListener("input", e => {
+    newMessage.addEventListener('input', e => {
         newMessageValue(e.target.value)
         currentTask.message = message;
     })
@@ -155,10 +157,9 @@ const editTask = elem => {
 }
 
 const editList = elem => {
-    const listId = +elem.closest(".todo").id;
+    const listId = +elem.closest('.todo').id;
     let title = toDoList[listId].titleList;
-
-    elem.parentNode.innerHTML =
+    elem.innerHTML =
         `<form class="formTask">
             <input type="text" placeholder="Title" class="newTitle" value="${title}" />
             <input type="submit" class="editBtn" value="Edit" />
@@ -168,47 +169,49 @@ const editList = elem => {
     let editBtn = document.querySelector('.editBtn');
 
     let newTitleValue = e => title = e;
-    newTitle.addEventListener("input", e => {
+    newTitle.addEventListener('change', e => {
         newTitleValue(e.target.value);
         toDoList[listId].titleList = title;
     })
 
     let btnSubmit = () => {
         saveLocalStorage();
+        outLists()
     }
     editBtn.addEventListener('click', btnSubmit)
 }
 
 const removeList = elem => {
-    const listId = +elem.closest(".todo").id;
-
-    delete toDoList[listId];
-
+    const listId = +elem.closest('.todo').id;
+    toDoList = [...toDoList].filter(x => x.id !== listId);
+    console.log(toDoList)
     saveLocalStorage();
-    outList();
+    outLists();
 }
 
 //modal
-const openModal = () => {
+const openModal = elem => {
+    const listId = +elem.closest('.todo').id;
+    currentListId = listId;
     modal.style.display = "flex";
 }
 
 const handleModalClickOutside = e => {
-    const modal = document.querySelector(".modal_overlay");
+    const modal = document.querySelector('.modal_overlay');
     const {
         target,
         currentTarget
     } = e;
-    if (target === currentTarget) modal.style.display = "none";
+    if (target === currentTarget) modal.style.display = 'none';
 }
 
 const hideModal = () => {
-    modal.style.display = "none";
+    modal.style.display = 'none';
 }
 
 const checkValidation = () => {
-    const title = document.getElementById("title");
-    const message = document.getElementById("message");
+    const title = document.getElementById('title');
+    const message = document.getElementById('message');
 
     return title.value && message.value;
 }
@@ -225,19 +228,19 @@ const addList = () => {
     let idList = toDoList.length;
     toDoList.push({
         id: idList,
-        titleList: "list",
+        titleList: 'list',
         tasks: [],
     })
 
     dragAndDrop();
-    outList();
+    outLists();
     saveLocalStorage();
 }
 
 const addTask = () => {
-    const title = document.getElementById("title");
-    const message = document.getElementById("message");
-
+    const title = document.getElementById('title');
+    const message = document.getElementById('message');
+    console.log(counterId)
     toDoList[currentListId].tasks.push({
         id: counterId++,
         title: title.value,
@@ -245,11 +248,12 @@ const addTask = () => {
         isActive: false
     });
 
+
     saveLocalStorage();
 
-    title.value = "";
-    message.value = "";
-    outList();
+    title.value = '';
+    message.value = '';
+    outLists();
     dragAndDrop();
 }
 
@@ -258,63 +262,47 @@ if (isExistToDoList) {
     toDoList = JSON.parse(localStorage.getItem('ToDOList'));
 }
 
-const randerTask = (arr) => {
-    let div = '';
-    arr.forEach(elem=>{
-        str += `<div>${elem.message}</div>`
+console.log('todoList', toDoList)
+const renderTasks = (idLists, arrTasks) => {
+    const outTasks = document.createElement("ul");
+    const  generateHTML = task => {
+        let check,
+            taskClass;
+        if (task.isActive) {
+            check = "checked"
+        };
+        task.isActive  ? taskClass = "task_done" : taskClass = "task";
+        outTasks.classList.add(`list`,'js-cell');
+        const newTask = `
+            <div class="task_checkbox">
+                <input class="checkbox" type="checkbox" ${check}/>
+            </div>
+            <div class="task_text">
+                <h2 class="task_title">${task.title}</h2>
+                <p class="task_message">${task.message}</p>
+            </div>
+            <div class="task-task_edit">
+                <button class="edit_button" type ="button" >
+                    <ion-icon name="create-outline" />
+                </button>
+                <button class="remove_button" type="button" >
+                    <ion-icon name="trash-outline" />
+                </button>
+            </div>`;
+        const li = document.createElement("li");
+        li.classList.add(`task`, taskClass, 'task-js');
+        li.innerHTML = newTask;
+        li.setAttribute('draggable', true);
+        li.setAttribute("id", task.id);
+        li.setAttribute("list", idLists);
+        return li;
+    };
+    arrTasks.forEach(task => {
+        const li = generateHTML(task);
+        outTasks.appendChild(li);
     });
-    return str
+    return outTasks;
 };
-const outTasks = (id, arr) => {
-    let div = document.createElement('div');
-        let outTasks = document.querySelector(".list");
-
-        arr.forEach(tasks => {
-            let check,
-                taskClass;
-            if (tasks.isActive === true) {
-                check = "checked"
-            };
-            tasks.isActive === true ? taskClass = "task_done" : taskClass = "task";
-            const newTask = `
-                <div class="task_checkbox">
-      <input class="checkbox" type="checkbox" ${check}/>
-    </div>
-                <div class="task_text">
-      <h2 class="task_title">${tasks.title}</h2>
-      <p class="task_message">${tasks.message}</p>
-    </div>
-                <div class="task-task_edit">
-      <button class="edit_button" type ="button" >
-        <ion-icon name="create-outline" />
-      </button>
-      <button class="remove_button" type="button" >
-          <ion-icon name="trash-outline" />
-      </button>
-    </div>`;
-
-            let li = document.createElement("li");
-            li.classList.add(`task`, taskClass, 'task-js');
-            li.innerHTML = newTask;
-            li.setAttribute('draggable', true);
-            li.setAttribute("id", tasks.id);
-            li.setAttribute("list", id);
-
-            div.appendChild(li);
-
-            // const addButton = newList.querySelectorAll('.add_button');
-            // addButton.forEach((btn) => {
-            //     btn.addEventListener('click', () => {
-            //         currentListId = lists.id;
-            //         openModal();
-            //     });
-            // });
-        })
-    dragAndDrop();
-return div;
-
-
-}
 
 const outLists = () => {
     const addList = document.querySelector('.container_todo');
@@ -324,34 +312,29 @@ const outLists = () => {
         newList.classList.add("todo", "js-cell");
         newList.setAttribute("id", lists.id);
         newList.innerHTML = `
-    <header class="header">
-        <div class="headerList">
-          <h1 class="header_title list_items">${lists.titleList}</h1> 
-          <button class="edit_button_list list_items" type ="button" >
-            <ion-icon name="create-outline" />
-          </button>
-         </div>
-          <div class="bthsList">
-             <button class="add_button btn_itmes" type="button">
+            <header class="header">
+            <div class="headerList">
+                <h1 class="header_title list_items">${lists.titleList}</h1> 
+            </div>
+            <div class="bthsList">
+              <button class="add_button btn_itmes" type="button">
                  <ion-icon name="add-outline" class="add_icon"></ion-icon>
              </button> 
               <button class="remove_button_list btn_itmes" type="button" >
-                 <ion-icon name="trash-outline" / >
+                 <ion-icon name="trash-outline" />
               </button> 
-          </div>
-    </button>
-    </header> 
-    <div class="body">
-       <ul class="list js-cell"></ul>
-    </div>`;
-        const tasks = outTasks(lists.id, lists.tasks);
-        let wrap =  newList.querySelector('.list');
-        wrap.append(tasks);
+            </div>
+            </button>
+        </header> 
+            <div class="body"></div>`;
 
-        //add
+        const tasks = renderTasks(lists.id, lists.tasks);
+        const outTasks =  newList.querySelector('.body');
+
+        outTasks.append(tasks);
         addList.appendChild(newList);
     })
-
+ dragAndDrop()
 }
 outLists();
 
